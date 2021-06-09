@@ -1,0 +1,740 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<title>js+help</title>
+<meta http-equiv="content-type" content="text/html;charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+html {
+  font-family: 'Arial';
+}
+
+body {
+  color: #333;
+  font-weight: 100;
+  max-width: 95%;
+  margin: 0 1em;
+}
+
+div:focus {
+  outline: none;
+}
+
+#heading {
+  font-size: 1.3em;
+  font-weight: bold;
+  padding-top: .5em;
+}
+
+#content {
+  padding-top: .5em;
+  font-size: 1em;
+}
+
+.box0 {
+  vertical-align: text-top;
+  cursor: text;
+  display: inline-block;
+  font-size: 1.1em;
+  border: 1px inset #aaa;
+  width: 95%;
+  margin: 1px;
+  padding: 2px;
+  min-height: 1em;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  resize: none;
+}
+
+.hidden {
+  display: none;
+}
+
+.box1 {
+  display:inline-block;
+  width: 90%;
+  vertical-align:top;
+}
+
+.box2 {
+  cursor: text;
+  display:inline-block;
+  font-size: 1.1em;
+  border: 1px inset #aaa;
+  width: 95%;
+  margin: 1px;
+  padding: 2px;
+  min-height: 1em;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  resize: none;
+}
+
+.buttonactive {
+  appearance: push-button !important;
+  background-color: SkyBlue;
+}
+</style>
+<script id="mainscript" language="JavaScript" type="text/javascript"><!--
+var idcntr=0;
+var blkid=null;
+var title;
+var values = [];
+var curout = null;
+var evalfn = eval;
+
+
+function pagestartup() {
+  title = decodeURIComponent(document.URL.match(/\/([^\.\/]*)[^\/]*$/)[1]) || 'JS';
+  document.getElementById('heading').innerHTML = title;
+  document.getElementsByTagName("title")[0].innerHTML = title;
+
+  idcntr = 0;
+  while (true) {
+    b = document.getElementById("b"+idcntr);
+    if (b === null) { break; }
+    blk_resizing(b);
+    idcntr++;
+  }
+  document.getElementById("downloader").href = "missing";
+  document.getElementById("downloader").download = "missing";
+}
+
+function textarearesize(ta) {
+  var h,a,y,ny;
+  y = window.pageYOffset;
+  ta.style.height = 'auto';
+  h = ta.scrollHeight;
+  h -= 4; // twice the padding
+  ta.style.height = h+'px';
+  ny = window.pageYOffset;
+  if (ny < y-40 || y+40 < ny) { // no big jumps
+    window.scrollTo(window.pageXoffset,y);
+    setTimeout(function(){ window.scrollTo(window.pageXoffset,y); },60);
+  }
+}
+
+function blkresize(b) {
+  var d,e;
+  d = b.childNodes[1];
+  if (6<=d.childNodes.length) {
+    e = d.childNodes[5];
+    if ("TEXTAREA" === e.nodeName) { textarearesize(e); }
+    if (1<=d.childNodes[6].childNodes.length) {
+      e = d.childNodes[6].childNodes[0];
+      if ("TEXTAREA" === e.nodeName) { textarearesize(e); }
+    }
+  }
+}
+
+function textarea_resizing(ta) {
+  function resize () {
+    textarearesize(ta);
+  }
+  function delayedResize () {
+    window.setTimeout(resize, 0);
+  }
+  ta.addEventListener('change',resize,false);
+  ta.addEventListener('cut',delayedResize,false);
+  ta.addEventListener('paste',delayedResize,false);
+  ta.addEventListener('drop',delayedResize,false);
+  ta.addEventListener('keydown',delayedResize,false);
+  textarearesize(ta);
+}
+
+function blk_resizing(b) {
+  var d,e;
+  d = b.childNodes[1];
+  if (6<=d.childNodes.length) {
+    e = d.childNodes[5];
+    if ("TEXTAREA" === e.nodeName) { textarea_resizing(e); }
+    if (1<=d.childNodes[6].childNodes.length) {
+      e = d.childNodes[6].childNodes[0];
+      if ("TEXTAREA" === e.nodeName) { textarea_resizing(e); }
+    }
+  }
+}
+
+function clear_content(ev,th) {
+  idcntr = 0;
+  blkid = null;
+  values = [];
+  document.getElementById('content').innerHTML = "";
+}
+
+function toggle_rw(ev,th) {
+  var c;
+  c = document.getElementById('content');
+  if ("true" === c.contentEditable) {
+    c.contentEditable = false;
+    document.getElementById('RORW').value = "RO>RW";
+  } else {
+    c.contentEditable = true;
+    document.getElementById('RORW').value = "RW>RO";
+  }
+}
+
+function add_block(ev,th) {
+  var txt,d,c,idnum,x;
+  c = document.getElementById('content');
+  idnum = idcntr;
+  idcntr++;
+txt = '['+idnum+']:&nbsp;<span class="box1">\
+<input type="button" value="go" onclick="button_flash(go_block,event,this);" class="">\
+<input type="button" value="txt" onclick="show_block(event,this);">\
+<input type="button" value="clr" onclick="clr_block(event,this);">\
+<input type="button" value="-" onclick="vis_block(event,this);"><br>\
+<textarea id="b'+idnum+'_in" class="box0" rows=1 cols=110></textarea>\
+<div></div></span>';
+  d = document.createElement("DIV");
+  d.id = "b"+idnum;
+  d.innerHTML = txt;
+  c.appendChild(d);
+  x=document.createElement("P");
+  x.style = "margin: .75em";
+  c.appendChild(x);
+  values[idnum] = undefined;
+  blk_resizing(d);
+  d.childNodes[1].childNodes[5].focus();
+  return undefined;
+}
+
+function deletelast_block(ev,th) {
+  var d,gid,aid;
+  d = document.getElementById('content');
+  if (null === d.lastChild) { return; }
+  idcntr--;
+  gid = "b"+idcntr;
+  while (1) {
+    aid = d.lastChild.id;
+    d.removeChild(d.lastChild);
+    if (gid === aid) { break; }
+  }
+  values[idcntr] = undefined;
+}
+
+function put(s) {
+  if (null === curout) {
+    console.log(s);
+  } else {
+    curout.value += s;
+    textarearesize(curout);
+  }
+  return s;
+}
+
+function eval_script(scr) {
+  var val,errmsg;
+  try {
+    val = evalfn(scr);
+  } catch (errmsg) {
+    val = "Error: " + errmsg;
+  }
+  return val;
+}
+
+function eval_block(blk) {
+  var scr,val,e,x,b,d;
+  scr = blk.childNodes[1].childNodes[5].value;
+  blkid = blk.id;
+  d = blk.childNodes[1].childNodes[6];
+  if (1<=d.childNodes.length && d.childNodes[0].id === undefined) {
+    d.innerHTML = "";
+  }
+  if (d.childNodes.length<1) {
+    x = document.createElement("TEXTAREA");
+    x.id = blkid + "_val";
+    x.className = "box2";
+    x.rows = 1;
+    x.cols = 110;
+    d.appendChild(x);
+    textarea_resizing(x);
+  } else {
+    x = d.childNodes[0];
+  }
+  x.value = "";
+  textarearesize(x)
+  curout = x;
+  val = eval_script(scr);
+  x.value += val;
+  textarearesize(x)
+  b = +(blkid.replace(/^b/,""));
+  values[b] = val;
+  return undefined;
+}
+
+function button_flash(fn,ev,th) {
+  th.className = "buttonactive";
+  setTimeout(function() { fn(ev,th); }, 20);
+}
+
+function button_active(th) { th.className = "buttonactive"; }
+function button_reset(th) { th.className = ""; }
+
+function go_block(ev,th) {
+  var blk,txt,d;
+  blk = th.parentNode.parentNode;
+  eval_block(blk);
+  button_reset(th);
+}
+
+function golast_block(ev,th) {
+  var blk,txt,d;
+  blk = document.getElementById("b"+(idcntr-1));
+  if (null === blk) {
+    button_reset(th);
+    return;
+  }
+  eval_block(blk);
+  button_reset(th);
+}
+
+function goadd_block(ev,th) {
+  golast_block(ev,th);
+  add_block(ev,th);
+}
+
+function show_block(ev,th) {
+  var txt,d;
+  txt = th.parentNode.childNodes[5].value;
+  d = th.parentNode.childNodes[6];
+  d.innerHTML = txt;
+  return undefined;
+}
+
+function clr_block(ev,th) {
+  var t,d,x,p;
+  d = th.parentNode.childNodes[6];
+  if (1<=d.childNodes.length && (d.childNodes[0].id === "" || d.childNodes[0].id === undefined)) {
+    d.innerHTML = "";
+  }
+  if (d.childNodes.length<1) {
+    x = document.createElement("TEXTAREA");
+    x.id = blkid + "_val";
+    x.className = "box2";
+    x.rows = 1;
+    x.cols = 110;
+    d.appendChild(x);
+  } else {
+    x = d.childNodes[0];
+  }
+  x.value = "";
+  textarearesize(x);
+  p = th.parentNode;
+  t = p.childNodes[5];
+  t.className = "box0";
+  p.childNodes[0].className = "";
+  p.childNodes[1].className = "";
+  p.childNodes[2].className = "";
+  p.childNodes[3].value = "-";
+}
+
+function vis_block(ev,th) {
+  var t,p;
+  p = th.parentNode;
+  t = p.childNodes[5];
+  if ("box0" === t.className) {
+    t.className = "hidden";
+    p.childNodes[0].className = "hidden";
+    p.childNodes[1].className = "hidden";
+    p.childNodes[2].className = "hidden";
+    p.childNodes[3].value = "+";
+  } else {
+    t.className = "box0";
+    p.childNodes[0].className = "";
+    p.childNodes[1].className = "";
+    p.childNodes[2].className = "";
+    p.childNodes[3].value = "-";
+  }
+  blkresize(p.parentNode);
+}
+
+function str(n) {
+  var e;
+  e = document.getElementById("b"+n+"_val");
+  if (null === e) {
+    e = document.getElementById("b"+n);
+    if (null === e) {
+      return "";
+    } else {
+      return e.childNodes[1].childNodes[5].value;
+    }
+  } else {
+    return e.value;
+  }
+}
+
+function res(n) {
+  var e,v;
+  if (undefined === values[n]) {
+    e = document.getElementById("b"+n+"_val");
+    if (null === e) {
+      return "";
+    } else {
+      v = e.value;
+    }
+    if ("" !== v) {
+      if (isNaN(+v)) {
+        return v;
+      }
+      else {
+        return +v;
+      }
+    } else {
+      return "";
+    }
+  }
+  return values[n];
+}
+
+function expr(n) {
+  var e;
+  e = document.getElementById("b"+n);
+  if (null === e) {
+    return ""
+  } else {
+    return e.childNodes[1].childNodes[5].value;
+  }
+}
+
+function last() {
+  var b;
+  if (null === blkid) { return null; }
+  b = blkid.replace(/^b/,"");
+  return res(b-1);
+}
+
+function final() {
+  return values[idcntr-1];
+}
+
+function store_content(ev,th) {
+  var fn,p,save_link,b;
+  update_all();
+  save_link = document.getElementById("downloader");
+  if ("missing" !== save_link.href) {
+    window.URL.revokeObjectURL(save_link.href);
+    save_link.href = "missing";
+  }
+  save_link.download = "missing";
+  fn = document.URL.match(/\/([^\/]*)$/)[1];
+  b = window.document.documentElement.outerHTML;
+  p = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"\n    "http://www.w3.org/TR/html4/strict.dtd">\n' + b;
+  p = p.replace(/\n\n\n+<\/body><\/html>/,"\n\n</body></html>");
+  blob = new Blob([String.fromCharCode(0xFEFF),p],{type: "text/html;charset=" + document.characterSet});
+  save_link.href = window.URL.createObjectURL(blob);
+  save_link.download = fn;
+}
+
+function write_doc(txt) {
+  var b;
+  document.open();
+  document.write(txt);
+  document.close();
+  idcntr = 0;
+  while (true) {
+    b = document.getElementById("b"+idcntr);
+    if (b === null) { break; }
+    blk_resizing(b);
+    idcntr++;
+  }
+  blkid = null;
+  values = [];
+}
+
+function restore_content(ev,th) {
+  var rdr
+  if (undefined === window.blob) return;
+  rdr = new FileReader();
+  rdr.addEventListener("loadend",function(e) { write_doc(e.srcElement.result) });
+  rdr.readAsText(blob);
+}
+
+function do_all(ev,th) {
+  var blk,txt,d,index,v;
+  for (index=0; index<idcntr; index++) {
+    blk = document.getElementById("b"+index);
+    if (null === blk) { continue; }
+    d = blk.childNodes[1].childNodes[5];
+    txt = d.value;
+    v = document.getElementById("b"+index+"_val");
+    if (! txt.match(/^</) || (null != v && "TEXTAREA" === v.nodeName)) {
+      eval_block(blk);
+    } else {
+      d.parentNode.childNodes[6].innerHTML = txt;
+    }
+  }
+  button_reset(th);
+}
+
+function update_all() {
+  var blk,d,index,v;
+  for (index=0; index<idcntr; index++) {
+    blk = document.getElementById("b"+index);
+    if (null === blk) { continue; }
+    d = blk.childNodes[1].childNodes[5];
+    d.textContent = d.value;
+    v = document.getElementById("b"+index+"_val");
+    if (null != v && "TEXTAREA" === v.nodeName) {
+      v.textContent = v.value;
+    }
+  }
+}
+--></script>
+</head>
+<body>
+
+<span id="heading" style="display:inline-block;margin-bottom: .5em;">js10gl</span>
+
+<span style="display:inline-block;float:right;margin-top: .8em;">
+<input id="RORW" type="button" value="RW>RO" onclick="toggle_rw(event,this);">
+<input type="button" value="clear" onclick="clear_content(event,this);">
+<input type="button" value="store" onclick="store_content(event,this);">
+<input type="button" value="restore" onclick="restore_content(event,this);">
+<a id="downloader" href="missing" download="missing" target="_blank"><input type="button" value="save" onclick="store_content(event,this);"></a>
+</span>
+<br>
+
+<input type="button" value="add" onclick="add_block(event,this);" style="margin-top: .8em; margin-bottom: .5em;">
+
+<div id="content" contenteditable="true"><div id="b0">[0]:&nbsp;<span class="box1"><input type="button" value="go" onclick="button_flash(go_block,event,this);" class="hidden"><input type="button" value="txt" onclick="show_block(event,this);" class="hidden"><input type="button" value="clr" onclick="clr_block(event,this);" class="hidden"><input type="button" value="+" onclick="vis_block(event,this);"><br><textarea id="b0_in" class="hidden" rows="1" cols="110" style="height: auto;">&lt;p&gt;
+&lt;b&gt;Documentation for js.html&lt;/b&gt;&lt;br&gt;
+&lt;br&gt;
+This is a self-contained Javascript Notebook (inspired by Jupyter Notebooks).
+&lt;br&gt;
+&lt;br&gt;
+&lt;b&gt;Appearance of an example notebook ...&lt;/b&gt;
+&lt;br&gt;
+&lt;hr&gt;
+
+&lt;span id="heading" style="font-size: 1.3em; font-weight: bold; padding-top: 0.5em; color: rgb(51, 51, 51); font-family: Arial; display: inline-block; margin-bottom: 0.5em;"&gt;jsX&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; float: right; margin-top: 0.8em;"&gt;&lt;input id="RORW" type="button" value="RW&gt;RO"&gt;&amp;nbsp;&lt;input type="button" value="clear"&gt;&amp;nbsp;&lt;input type="button" value="store"&gt;&amp;nbsp;&lt;input type="button" value="restore"&gt;&amp;nbsp;&lt;a id="downloader" href="file:///media/removable/TCWdrive/stuff/missing" download="missing" target="_blank"&gt;&lt;input type="button" value="save"&gt;&lt;/a&gt;&lt;/span&gt;&lt;br style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&lt;input type="button" value="add" style="margin-top: 0.8em; margin-bottom: 0.5em;"&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&lt;/span&gt;&lt;div id="content" style="padding-top: 0.5em; color: rgb(51, 51, 51); font-family: Arial;"&gt;&lt;div id="b0"&gt;[0]:&amp;nbsp;&lt;span class="box1" style="display: inline-block; width: 693.391px; vertical-align: top;"&gt;&lt;input type="button" value="go" class=""&gt;&lt;input type="button" value="txt"&gt;&lt;input type="button" value="clr"&gt;&lt;input type="button" value="-"&gt;&lt;br&gt;&lt;textarea id="b0_in" class="box0" rows="1" cols="110" style="vertical-align: text-top; font-size: 1.1em; border-style: inset; border-color: rgb(170, 170, 170); width: 658.719px; margin: 1px; min-height: 1em; resize: none; height: 17px;"&gt;(1+Math.sqrt(5))/2&lt;/textarea&gt;&lt;div&gt;&lt;textarea id="b0_val" class="box2" rows="1" cols="110" style="font-size: 1.1em; border-style: inset; border-color: rgb(170, 170, 170); width: 658.719px; margin: 1px; min-height: 1em; resize: none; height: 17px;"&gt;1.618033988749895&lt;/textarea&gt;&lt;/div&gt;&lt;/span&gt;&lt;/div&gt;&lt;p style="margin: 0.75em;"&gt;&lt;/p&gt;&lt;/div&gt;&lt;input type="button" value="go last" class=""&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&amp;nbsp;&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; width: 0.2em;"&gt;&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&amp;nbsp;&lt;/span&gt;&lt;input type="button" value="add"&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&amp;nbsp;&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; width: 0.2em;"&gt;&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&amp;nbsp;&lt;/span&gt;&lt;input type="button" value="go-add" class=""&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&amp;nbsp;&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; width: 0.2em;"&gt;&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&amp;nbsp;&lt;/span&gt;&lt;input type="button" value="go all" class=""&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&amp;nbsp;&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; width: 115.562px;"&gt;&lt;/span&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&amp;nbsp;&lt;/span&gt;&lt;input type="button" value="delete"&gt;&lt;span style="color: rgb(51, 51, 51); font-family: Arial;"&gt;&lt;/span&gt;&lt;div&gt;&lt;br style="color: rgb(0, 0, 0); font-family: Tinos;"&gt;&lt;/div&gt;
+
+&lt;br&gt;
+&lt;hr&gt;
+&lt;br&gt;&lt;br&gt;
+&lt;div&gt;
+&lt;b&gt;Description of elements&lt;/b&gt;
+&lt;/div&gt;
+&lt;div&gt;&lt;br&gt;
+&lt;b&gt;Top elements&lt;/b&gt;
+&lt;/div&gt;
+&lt;b&gt;jsX&lt;/b&gt;
+ - name of the html file (with ".html" removed)&lt;br&gt;
+&lt;div&gt;
+buttons:&lt;/div&gt;
+&lt;div&gt;
+add - add a new interaction unit (these consist of a javascript/html input and possibly a resultant output)&lt;/div&gt;
+&lt;div&gt;
+RO&amp;gt;RW / RW&amp;gt;RO - make read-write(RW) / read-only(RO), this is a toggle; Helps clicking links in html text&lt;/div&gt;
+&lt;div&gt;
+clear - clears out all content&lt;/div&gt;
+&lt;div&gt;
+store - saves copy of content (within the page's data, not in a file)&lt;/div&gt;
+&lt;div&gt;
+restore - restores saved copy of content&lt;/div&gt;
+&lt;div&gt;
+save - Save to file (functions like downloading a file);
+For Chrome browser, want "Ask where to save each file before downloading" turned on (exact behavior varies with OS and browser)
+&lt;/div&gt;
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;b&gt;Interaction units&lt;/b&gt;
+ - there may be many of these&lt;/div&gt;
+&lt;div&gt;
+[n] - numbered id of unit&lt;/div&gt;
+&lt;div&gt;
+input text box - place to enter javascript code or html input; Below this may be an output value in a box or unboxed html rendering;&lt;/div&gt;
+&lt;div&gt;
+output appears below input and is boxed if it is the result of evaluation; only appears after "go" or "txt" is clicked; html output will be read-only in RO mode&lt;/div&gt;
+&lt;div&gt;
+&lt;span style="font-size: 1em;"&gt;
+buttons:&lt;/span&gt;&lt;br&gt;
+&lt;/div&gt;
+&lt;div&gt;
+go - eval input and put result (string version of) in output box below the input box&lt;/div&gt;
+&lt;div&gt;
+txt - show input text via html rendering below input box&lt;/div&gt;
+&lt;div&gt;
+clr - clear the output box (switch to eval output); will create output box if it doesn't exist&lt;/div&gt;
+&lt;div&gt;
+- / + - toggle visibility of input box and go/txt/clr buttons; with html rendering hides the html markup&lt;/div&gt;
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;b&gt;Bottom elements&lt;/b&gt;
+&lt;/div&gt;
+&lt;div&gt;
+buttons:&lt;/div&gt;
+&lt;div&gt;
+go last - eval last input and show result&lt;/div&gt;
+&lt;div&gt;
+add - add another interaction unit&lt;/div&gt;
+&lt;div&gt;
+go-add - Same as "go last" followed by "add"&lt;/div&gt;
+&lt;div&gt;
+go all - go through all interaction&amp;nbsp;units evaluating and showing the results; if first non-blank character of the input is "&amp;lt;", then input is considered html&lt;/div&gt;
+&lt;div&gt;
+delete - delete the last interaction unit&lt;/div&gt;
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;
+&lt;div&gt;
+&lt;b&gt;Special functions available in javascript code&lt;/b&gt;
+&lt;/div&gt;
+&lt;div&gt;
+str(n) - nth output as string&lt;/div&gt;
+&lt;div&gt;
+res(n) - nth output value (not stringified)&lt;/div&gt;
+&lt;div&gt;
+expr(n) - nth input value as string&lt;/div&gt;
+&lt;div&gt;
+last() - previous output value or string (not stringified)&lt;/div&gt;
+&lt;div&gt;
+final() - very last output value (not stringified)&lt;/div&gt;
+&lt;div&gt;
+put(str) - appends value of str to output area for current executing javascript code; like printing to output box&lt;/div&gt;
+&lt;div&gt;&lt;br&gt;
+&lt;div&gt;
+&lt;div&gt;
+A few additional notes:&lt;br&gt;
+Outputs are produced by the default rules for converting values to strings ("toString").&lt;br&gt;
+Evaluation is done with global context. Function definitions will be global.&lt;br&gt;
+Browser save ("Save page as ...") loses changes and functionality. Make sure to use the Save button.&lt;br&gt;
+HTML output/rendering only updated when the txt button is clicked.&lt;/div&gt;
+When RW, the html outputs can be edited (but the "source" will not be updated). Changes will be preserved by saving.&lt;br&gt;
+(The CSS/JS content of this page can be moved to separate files to make very small working pages.)&lt;br&gt;
+You can paste text data into an input box and refer to it elsewhere using expr().&lt;br&gt;
+&lt;div&gt;&lt;br&gt;
+&lt;/div&gt;
+&lt;div&gt;&lt;br&gt;&lt;/div&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+</textarea><div><p>
+<b>Documentation for js.html</b><br>
+<br>
+This is a self-contained Javascript Notebook (inspired by Jupyter Notebooks).
+<br>
+<br>
+<b>Appearance of an example notebook ...</b>
+<br>
+</p><hr>
+
+<span id="heading" style="font-size: 1.3em; font-weight: bold; padding-top: 0.5em; color: rgb(51, 51, 51); font-family: Arial; display: inline-block; margin-bottom: 0.5em;">jsX</span><span style="color: rgb(51, 51, 51); font-family: Arial;"></span><span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; float: right; margin-top: 0.8em;"><input id="RORW" type="button" value="RW>RO">&nbsp;<input type="button" value="clear">&nbsp;<input type="button" value="store">&nbsp;<input type="button" value="restore">&nbsp;<a id="downloader" href="file:///media/removable/TCWdrive/stuff/missing" download="missing" target="_blank"><input type="button" value="save"></a></span><br style="color: rgb(51, 51, 51); font-family: Arial;"><input type="button" value="add" style="margin-top: 0.8em; margin-bottom: 0.5em;"><span style="color: rgb(51, 51, 51); font-family: Arial;"></span><div id="content" style="padding-top: 0.5em; color: rgb(51, 51, 51); font-family: Arial;"><div id="b0">[0]:&nbsp;<span class="box1" style="display: inline-block; width: 693.391px; vertical-align: top;"><input type="button" value="go" class=""><input type="button" value="txt"><input type="button" value="clr"><input type="button" value="-"><br><textarea id="b0_in" class="box0" rows="1" cols="110" style="vertical-align: text-top; font-size: 1.1em; border-style: inset; border-color: rgb(170, 170, 170); width: 658.719px; margin: 1px; min-height: 1em; resize: none; height: 17px;">(1+Math.sqrt(5))/2</textarea><div><textarea id="b0_val" class="box2" rows="1" cols="110" style="font-size: 1.1em; border-style: inset; border-color: rgb(170, 170, 170); width: 658.719px; margin: 1px; min-height: 1em; resize: none; height: 17px;">1.618033988749895</textarea></div></span></div><p style="margin: 0.75em;"></p></div><input type="button" value="go last" class=""><span style="color: rgb(51, 51, 51); font-family: Arial;">&nbsp;</span><span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; width: 0.2em;"></span><span style="color: rgb(51, 51, 51); font-family: Arial;">&nbsp;</span><input type="button" value="add"><span style="color: rgb(51, 51, 51); font-family: Arial;">&nbsp;</span><span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; width: 0.2em;"></span><span style="color: rgb(51, 51, 51); font-family: Arial;">&nbsp;</span><input type="button" value="go-add" class=""><span style="color: rgb(51, 51, 51); font-family: Arial;">&nbsp;</span><span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; width: 0.2em;"></span><span style="color: rgb(51, 51, 51); font-family: Arial;">&nbsp;</span><input type="button" value="go all" class=""><span style="color: rgb(51, 51, 51); font-family: Arial;">&nbsp;</span><span style="color: rgb(51, 51, 51); font-family: Arial; display: inline-block; width: 115.562px;"></span><span style="color: rgb(51, 51, 51); font-family: Arial;">&nbsp;</span><input type="button" value="delete"><span style="color: rgb(51, 51, 51); font-family: Arial;"></span><div><br style="color: rgb(0, 0, 0); font-family: Tinos;"></div>
+
+<br>
+<hr>
+<br><br>
+<div>
+<b>Description of elements</b>
+</div>
+<div><br>
+<b>Top elements</b>
+</div>
+<b>jsX</b>
+ - name of the html file (with ".html" removed)<br>
+<div>
+buttons:</div>
+<div>
+add - add a new interaction unit (these consist of a javascript/html input and possibly a resultant output)</div>
+<div>
+RO&gt;RW / RW&gt;RO - make read-write(RW) / read-only(RO), this is a toggle; Helps clicking links in html text</div>
+<div>
+clear - clears out all content</div>
+<div>
+store - saves copy of content (within the page's data, not in a file)</div>
+<div>
+restore - restores saved copy of content</div>
+<div>
+save - Save to file (functions like downloading a file);
+For Chrome browser, want "Ask where to save each file before downloading" turned on (exact behavior varies with OS and browser)
+</div>
+<div><br></div>
+<div>
+<b>Interaction units</b>
+ - there may be many of these</div>
+<div>
+[n] - numbered id of unit</div>
+<div>
+input text box - place to enter javascript code or html input; Below this may be an output value in a box or unboxed html rendering;</div>
+<div>
+output appears below input and is boxed if it is the result of evaluation; only appears after "go" or "txt" is clicked; html output will be read-only in RO mode</div>
+<div>
+<span style="font-size: 1em;">
+buttons:</span><br>
+</div>
+<div>
+go - eval input and put result (string version of) in output box below the input box</div>
+<div>
+txt - show input text via html rendering below input box</div>
+<div>
+clr - clear the output box (switch to eval output); will create output box if it doesn't exist</div>
+<div>
+- / + - toggle visibility of input box and go/txt/clr buttons; with html rendering hides the html markup</div>
+<div><br></div>
+<div>
+<b>Bottom elements</b>
+</div>
+<div>
+buttons:</div>
+<div>
+go last - eval last input and show result</div>
+<div>
+add - add another interaction unit</div>
+<div>
+go-add - Same as "go last" followed by "add"</div>
+<div>
+go all - go through all interaction&nbsp;units evaluating and showing the results; if first non-blank character of the input is "&lt;", then input is considered html</div>
+<div>
+delete - delete the last interaction unit</div>
+<div><br></div>
+<div>
+<b>Special functions available in javascript code</b>
+</div>
+<div>
+str(n) - nth output as string</div>
+<div>
+res(n) - nth output value (not stringified)</div>
+<div>
+expr(n) - nth input value as string</div>
+<div>
+last() - previous output value or string (not stringified)</div>
+<div>
+final() - very last output value (not stringified)</div>
+<div>
+put(str) - appends value of str to output area for current executing javascript code; like printing to output box</div>
+<div><br>
+<div>
+<div>
+A few additional notes:<br>
+Outputs are produced by the default rules for converting values to strings ("toString").<br>
+Evaluation is done with global context. Function definitions will be global.<br>
+Browser save ("Save page as ...") loses changes and functionality. Make sure to use the Save button.<br>
+HTML output/rendering only updated when the txt button is clicked.</div>
+When RW, the html outputs can be edited (but the "source" will not be updated). Changes will be preserved by saving.<br>
+(The CSS/JS content of this page can be moved to separate files to make very small working pages.)<br>
+You can paste text data into an input box and refer to it elsewhere using expr().<br>
+<div><br>
+</div>
+<div><br></div>
+</div></div>
+</div></span></div><p style="margin: 0.75em;"></p><div id="b1">[1]:&nbsp;<span class="box1"><input type="button" value="go" onclick="button_flash(go_block,event,this);" class="hidden"><input type="button" value="txt" onclick="show_block(event,this);" class="hidden"><input type="button" value="clr" onclick="clr_block(event,this);" class="hidden"><input type="button" value="+" onclick="vis_block(event,this);"><br><textarea id="b1_in" class="hidden" rows="1" cols="110" style="height: auto;">&lt;p&gt;You can use the clear button to eliminate the documentation and create an empty notebook.</textarea><div><p>You can use the clear button to eliminate the documentation and create an empty notebook.</p></div></span></div><p style="margin: 0.75em;"></p></div>
+
+<input type="button" value="go last" onclick="button_flash(golast_block,event,this);" class="">
+
+<span style="display:inline-block;width:.2em"></span>
+<input type="button" value="add" onclick="add_block(event,this);">
+
+<span style="display:inline-block;width:.2em"></span>
+<input type="button" value="go-add" onclick="button_flash(goadd_block,event,this);" class="">
+
+<span style="display:inline-block;width: .2em"></span>
+<input type="button" value="go all" onclick="button_flash(do_all,event,this);" class="">
+
+<span style="display:inline-block;width:15%;"></span>
+<input type="button" value="delete" onclick="deletelast_block(event,this);">
+
+<p style="height: 10em"></p>
+
+<script language="JavaScript" type="text/javascript">
+pagestartup();
+--></script>
+
+</body></html>
