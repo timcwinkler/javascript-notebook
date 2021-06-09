@@ -13,4 +13,4 @@ Try it out:
 
 [js+help.html](https://raw.githubusercontent.com/timcwinkler/javascript-notebook/main/js%2Bhelp.html)
 
-[I expect this to fail.]
+(You can use this link to download the file.)
