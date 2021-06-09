@@ -13,6 +13,10 @@ Try it out:
 
 [js+help.html](https://raw.githubusercontent.com/timcwinkler/javascript-notebook/main/js%2Bhelp.html)
 
+Here is a really live link:
+
+[js+help.html](https://rawcdn.githack.com/timcwinkler/javascript-notebook/95952f74873a942ad04bb128d0defc47bc11a25a/js+help.html)
+
 (You can use this link to download the file.)
 
 The mfibo.html file is an example with a bit more content. Computing Fibo(n) using the familiar closed-form formula, but using modular arithmetic.
