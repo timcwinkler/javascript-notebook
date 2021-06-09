@@ -11,6 +11,10 @@ The built-in documentation in js+help.html:
 
 Try it out:
 
+[js+help.html via github.io](https://timcwinkler.github.io/js+help.html)
+
+This link will show you the source HTML text:
+
 [js+help.html](https://raw.githubusercontent.com/timcwinkler/javascript-notebook/main/js%2Bhelp.html)
 
 (You can use this link to download the file.)
